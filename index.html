@@ -20,13 +20,13 @@
       <form id="product-form" onsubmit="handleFormSubmit(event)">
         <div id="error-message" style="color: red; display: none;"></div>
 
-        <label for="product-description">Descrição:</label>
+        <label for="product-description">Descrição*</label>
         <input type="text" id="product-description" required maxlength="40" placeholder="Descrição do produto">
 
-        <label for="product-value">Valor (R$):</label>
+        <label for="product-value">Valor (R$)*</label>
         <input type="text" id="product-value" required placeholder="Valor do produto">
 
-        <label for="product-category">Categoria:</label>
+        <label for="product-category">Categoria*</label>
         <select id="product-category" onchange="handleCategoryChange()" required>
           <option value="">Selecione a categoria</option>
           <option value="eletronicos">Eletrônicos</option>
@@ -36,12 +36,12 @@
         </select>
 
         <div id="other-category-container" style="display: none;">
-          <label for="other-category">Digite a categoria:</label>
+          <label for="other-category">Digite a categoria</label>
           <input type="text" id="other-category" placeholder="Digite uma categoria" />
         </div>
 
         <button type="submit">Salvar</button>
-        <button type="button" onclick="hideForm()">Cancelar</button>
+        <button type="button" onclick="clearForm()">Cancelar</button>
       </form>
     </div>
   </div>
