@@ -107,10 +107,27 @@ function editProduct(id) {
   }
 }
 
+// Função p/ excluir prod.
 function deleteProduct(id) {
-  products = products.filter(product => product.id !== id);
-  renderProductList();
+  productIdToDelete = id; 
+  document.getElementById("confirmation-modal").style.display = "flex"; 
 }
+
+document.getElementById("confirm-delete").onclick = function() {
+  const productIndex = products.findIndex(p => p.id === productIdToDelete);
+
+  if (productIndex !== -1) {
+    products.splice(productIndex, 1);
+    renderProductList();
+  }
+
+  document.getElementById("confirmation-modal").style.display = "none";
+};
+
+document.getElementById("cancel-delete").onclick = function() {
+  document.getElementById("confirmation-modal").style.display = "none";
+};
+
 
 function handleCategoryChange() {
   const categorySelect = document.getElementById("product-category");
@@ -148,4 +165,3 @@ function showProductList() {
   document.getElementById("product-form-container").style.display = "none";
   document.querySelector(".product-list").style.display = "block";
 }
-
