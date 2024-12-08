@@ -143,3 +143,9 @@ function hideForm() {
 function formatCurrency(value) {
   return "R$ " + value.replace(/\D/g, "").replace(/(\d)(\d{2})$/, "$1,$2").replace(/(\d)(\d{3})(\d{3})$/, "$1.$2.$3");
 }
+
+function showProductList() {
+  document.getElementById("product-form-container").style.display = "none";
+  document.querySelector(".product-list").style.display = "block";
+}
+
