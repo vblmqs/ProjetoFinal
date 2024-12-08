@@ -36,13 +36,19 @@
         </select>
 
         <div id="other-category-container" style="display: none;">
-          <label for="other-category">Digite a categoria</label>
+          <label for="other-category">Digite a categoria*</label>
           <input type="text" id="other-category" placeholder="Digite uma categoria" />
         </div>
 
         <button type="submit">Salvar</button>
         <button type="button" onclick="clearForm()">Cancelar</button>
         <button type="button" onclick="showProductList()">Ver Lista de Produtos</button>
+
+        <!-- Mensagem de sucesso -->
+<div id="success-message" style="display: none; color: green; margin-top: 10px;">
+  Produto salvo com sucesso!
+</div>
+
       </form>
     </div>
   </div>

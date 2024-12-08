@@ -61,6 +61,18 @@ function handleFormSubmit(event) {
   products.push(product);
   renderProductList();
   clearForm();
+
+  showSuccessMessage();
+}
+
+function showSuccessMessage() {
+  const successMessage = document.getElementById("success-message");
+  successMessage.style.display = "block";
+
+  // Esconde a mensagem após 3 segundos
+  setTimeout(() => {
+    successMessage.style.display = "none";
+  }, 3000);
 }
 
 function showError(message) {
