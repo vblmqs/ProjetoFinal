@@ -1,179 +1,172 @@
-let products = [];
-let currentProductId = 1;
+// Armazena os produtos
+let produtos = [];
+let produtoEditando = null; // Variável para armazenar o índice do produto sendo editado
 
-function handleFormSubmit(event) {
-  event.preventDefault();
-
-  const description = document.getElementById("product-description").value;
-  const value = document.getElementById("product-value").value;
-  const category = document.getElementById("product-category").value;
-  const otherCategory = document.getElementById("other-category").value;
-
-  // Limpeza de erros
-  hideError();
-
-  // Validação de campos
-  if (!description || !value || !category) {
-    showError("Todos os campos são obrigatórios.");
-    return;
-  }
-
-  // Validação da descrição (somente texto e até 40 caracteres)
-  if (!/^[a-zA-Z\s]+$/.test(description)) {
-    showError("A descrição deve conter apenas letras e espaços.");
-    return;
-  }
-
-  if (description.length > 40) {
-    showError("A descrição não pode ter mais de 40 caracteres.");
-    return;
-  }
-
-  // Validação do valor (somente números e formato de moeda)
-  if (!/^\d+(\,\d{2})?$/.test(value)) {
-    showError("O valor deve ser um número válido com até 2 casas decimais.");
-    return;
-  }
-
-  // Verificar se o valor está no formato correto de moeda (com vírgula como separador)
-  const formattedValue = formatCurrency(value);
-
-  if (category === "outros" && !otherCategory) {
-    showError("Por favor, informe a categoria.");
-    return;
-  }
-
-  // Verificar se já existe um produto com a mesma descrição
-  const productExists = products.some(product => product.description === description);
-  if (productExists) {
-    showError("Já existe um produto com essa descrição.");
-    return;
-  }
-
-  // Criando o produto
-  const product = {
-    id: currentProductId++,
-    description,
-    value: formattedValue,
-    category: category === "outros" ? otherCategory : category,
-  };
-
-  products.push(product);
-  renderProductList();
-  clearForm();
-
-  showSuccessMessage();
-}
-
-function showSuccessMessage() {
-  const successMessage = document.getElementById("success-message");
-  successMessage.style.display = "block";
-
-  // Esconde a mensagem após 3 segundos
-  setTimeout(() => {
-    successMessage.style.display = "none";
-  }, 3000);
-}
-
-function showError(message) {
-  const errorMessage = document.getElementById("error-message");
-  errorMessage.textContent = message;
-  errorMessage.style.display = "block";
-}
-
-function hideError() {
-  const errorMessage = document.getElementById("error-message");
-  errorMessage.style.display = "none";
-}
-
-function renderProductList() {
-  const productList = document.getElementById("product-list");
-  productList.innerHTML = "";
-
-  products.forEach(product => {
-    const productCard = document.createElement("div");
-    productCard.classList.add("product-card");
-
-    productCard.innerHTML = `
-      <h3>${product.description}</h3>
-      <p><strong>Valor:</strong> ${product.value}</p>
-      <p><strong>Categoria:</strong> ${product.category}</p>
-      <div class="actions">
-        <button class="edit-btn" onclick="editProduct(${product.id})">✎</button>
-        <button class="delete-btn" onclick="deleteProduct(${product.id})">🗑</button>
-      </div>
-    `;
-
-    productList.appendChild(productCard);
-  });
-}
-
-function editProduct(id) {
-  const product = products.find(p => p.id === id);
-  if (product) {
-    document.getElementById("product-description").value = product.description;
-    document.getElementById("product-value").value = product.value.replace("R$ ", "").replace(".", ",");
-    document.getElementById("product-category").value = product.category === "outros" ? "outros" : product.category;
-    document.getElementById("other-category").value = product.category === "outros" ? product.category : "";
-    showForm();
-  }
-}
-
-// Função p/ excluir prod.
-function deleteProduct(id) {
-  productIdToDelete = id; 
-  document.getElementById("confirmation-modal").style.display = "flex"; 
-}
-
-document.getElementById("confirm-delete").onclick = function() {
-  const productIndex = products.findIndex(p => p.id === productIdToDelete);
-
-  if (productIndex !== -1) {
-    products.splice(productIndex, 1);
-    renderProductList();
-  }
-
-  document.getElementById("confirmation-modal").style.display = "none";
-};
-
-document.getElementById("cancel-delete").onclick = function() {
-  document.getElementById("confirmation-modal").style.display = "none";
-};
-
-
-function handleCategoryChange() {
-  const categorySelect = document.getElementById("product-category");
-  const otherCategoryContainer = document.getElementById("other-category-container");
-  
-  if (categorySelect.value === "outros") {
-    otherCategoryContainer.style.display = "block";
-  } else {
-    otherCategoryContainer.style.display = "none";
-  }
-}
-
-function clearForm() {
-  document.getElementById("product-description").value = "";
-  document.getElementById("product-value").value = "";
-  document.getElementById("product-category").value = "";
-  document.getElementById("other-category").value = "";
-}
-
+// Exibe o formulário de cadastro
 function showForm() {
-  document.getElementById("product-form-container").style.display = "block";
-  document.querySelector(".product-list").style.display = "none";
+    document.getElementById("product-form-container").style.display = "block";
+    document.querySelector(".product-list").style.display = "none";
+    clearErrorMessage();
 }
 
-function hideForm() {
-  document.getElementById("product-form-container").style.display = "none";
-  document.querySelector(".product-list").style.display = "block";
-}
-
-function formatCurrency(value) {
-  return "R$ " + value.replace(/\D/g, "").replace(/(\d)(\d{2})$/, "$1,$2").replace(/(\d)(\d{3})(\d{3})$/, "$1.$2.$3");
-}
-
+// Retorna à lista de produtos
 function showProductList() {
-  document.getElementById("product-form-container").style.display = "none";
-  document.querySelector(".product-list").style.display = "block";
+    document.getElementById("product-form-container").style.display = "none";
+    document.querySelector(".product-list").style.display = "block";
+    renderProductList(); // Garante que a lista seja renderizada ao mostrar
+}
+
+// Manipula a mudança na categoria
+function handleCategoryChange() {
+    const category = document.getElementById("product-category").value;
+    const otherCategoryContainer = document.getElementById("other-category-container");
+    otherCategoryContainer.style.display = category === "outros" ? "block" : "none";
+}
+
+// Formata valores para moeda brasileira
+function formatarValor(valor) {
+    let partes = valor.split(",");
+    if (partes.length === 1) return `${valor},00`;
+    if (partes[1].length === 1) return `${partes[0]},${partes[1]}0`;
+    return valor;
+}
+
+// Limpa o formulário
+function clearForm() {
+    if (confirm("Tem certeza que deseja cancelar o cadastro?")) {
+        document.getElementById("product-form").reset();
+        document.getElementById("other-category-container").style.display = "none";
+        clearErrorMessage();
+        produtoEditando = null; // Limpa o produto sendo editado
+        document.getElementById("product-description").disabled = false; // Reabilita o campo de descrição
+        showProductList();
+    }
+}
+
+// Remove mensagens de erro
+function clearErrorMessage() {
+    document.getElementById("error-message").style.display = "none";
+    document.getElementById("error-message").innerText = "";
+}
+
+// Exibe mensagens de erro
+function displayErrorMessage(message) {
+    const errorMessage = document.getElementById("error-message");
+    errorMessage.style.display = "block";
+    errorMessage.innerText = message;
+}
+
+// Valida se a string contém apenas letras
+function isAlphabetic(input) {
+    return /^[a-zA-ZáéíóúÁÉÍÓÚâêîôûÂÊÎÔÛãõÃÕçÇ\s]+$/.test(input);
+}
+
+// Valida e salva o produto
+function handleFormSubmit(event) {
+    event.preventDefault();
+    
+    const descricao = document.getElementById("product-description").value.trim();
+    const valor = document.getElementById("product-value").value.trim();
+    const categoria = document.getElementById("product-category").value;
+    const outraCategoria = document.getElementById("other-category")?.value.trim();
+
+    // Validações
+    if (!descricao) {
+        displayErrorMessage("Descrição é obrigatória.");
+        return;
+    }
+    if (descricao.length > 40) {
+        displayErrorMessage("Descrição deve ter no máximo 40 caracteres.");
+        return;
+    }
+    
+    // Verifica se existe outro produto com a mesma descrição, mas ignora o produto em edição
+    if (produtos.some(p => p.descricao === descricao && produtoEditando !== produtos.indexOf(p))) {
+        displayErrorMessage("Já existe um produto com essa descrição.");
+        return;
+    }
+
+    if (!valor.match(/^\d+(\,\d{1,2})?$/)) {
+        displayErrorMessage("Valor inválido! Use o formato correto (ex: 100,00).");
+        return;
+    }
+    if (!categoria) {
+        displayErrorMessage("Selecione uma categoria.");
+        return;
+    }
+    if (categoria === "outros") {
+        if (!outraCategoria || outraCategoria.length > 30) {
+            displayErrorMessage("Categoria personalizada inválida ou muito longa.");
+            return;
+        }
+        if (!isAlphabetic(outraCategoria)) {
+            displayErrorMessage("A categoria personalizada só pode conter letras.");
+            return;
+        }
+    }
+
+    // Confirmação antes de salvar
+    if (confirm("Deseja salvar o produto?")) {
+        const produto = {
+            descricao: produtos[produtoEditando]?.descricao || descricao, // Não permite mudar a descrição
+            valor: formatarValor(valor),
+            categoria: categoria === "outros" ? outraCategoria : categoria
+        };
+
+        if (produtoEditando !== null) {
+            // Atualiza o produto existente (não permite alterar a descrição)
+            produtos[produtoEditando] = produto;
+            produtoEditando = null; // Limpa a referência de edição
+        } else {
+            // Adiciona novo produto
+            produtos.push(produto);
+        }
+
+        document.getElementById("product-form").reset();
+        document.getElementById("product-description").disabled = false; // Reabilita o campo de descrição
+        showProductList();
+    }
+}
+
+// Renderiza a lista de produtos
+function renderProductList() {
+    const lista = document.getElementById("product-list");
+    lista.innerHTML = "";
+    produtos.forEach((produto, index) => {
+        const produtoDiv = document.createElement("div");
+        produtoDiv.classList.add("product-card");
+        produtoDiv.innerHTML = `
+            <h3>${produto.descricao}</h3>
+            <p>Valor: R$ ${produto.valor}</p>
+            <p>Categoria: ${produto.categoria}</p>
+            <div class="actions">
+                <button class="edit-btn" onclick="editProduct(${index})">✏️</button>
+                <button class="delete-btn" onclick="deleteProduct(${index})">🗑️</button>
+            </div>
+        `;
+        lista.appendChild(produtoDiv);
+    });
+}
+
+// Edita um produto
+function editProduct(index) {
+    produtoEditando = index;  // Atribui o índice do produto a ser editado
+    const produto = produtos[index];
+    document.getElementById("product-description").value = produto.descricao; // Descrição não pode ser alterada
+    document.getElementById("product-description").disabled = true; // Desabilita o campo de descrição
+    document.getElementById("product-value").value = produto.valor;
+    document.getElementById("product-category").value = produto.categoria;
+    if (produto.categoria === "outros") {
+        document.getElementById("other-category").value = produto.categoria;
+        document.getElementById("other-category-container").style.display = "block";
+    }
+    showForm();
+}
+
+// Deleta um produto
+function deleteProduct(index) {
+    if (confirm("Tem certeza que deseja deletar este produto?")) {
+        produtos.splice(index, 1);
+        renderProductList();
+    }
 }
