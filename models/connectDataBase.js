@@ -1,33 +1,38 @@
-const mysql = require("mysql2/promise");
+const mysql = require('mysql2');
 
-const client = mysql.createPool({
-  host: "localhost",
-  port: 3306,
-  user: "root",
-  password: "root",
-  database: "inventario",
+// conexao
+const connection = mysql.createConnection({
+  host: 'localhost', 
+  user: 'root', 
+  password: 'root', 
+  database: 'inventario'
 });
 
-const testarConexao = async () => {
-  try {
-    const connection = await client.getConnection();
-    console.log("MySQL conectado com sucesso!");
-    connection.release();
-  } catch (error) {
-    console.error("Erro ao conectar ao banco de dados:", error);
-    throw error;
-  }
+// Função para testar a conexão com o banco de dados
+const testarConexao = () => {
+  return new Promise((resolve, reject) => {
+    connection.connect((error) => {
+      if (error) {
+        reject('Erro na conexão com o banco de dados: ' + error.message);
+      } else {
+        resolve('Conexão bem-sucedida com o banco de dados!');
+      }
+    });
+  });
 };
 
-exports.query = async (consulta, valores) => {
-  try {
-    const [linhas, campos] = await client.execute(consulta, valores);
-    return linhas;
-  } catch (error) {
-    console.error("Erro na consulta ao banco de dados:", error);
-    throw error;
-  }
+// Função para realizar consultas ao banco de dados
+const query = (sql, params) => {
+  return new Promise((resolve, reject) => {
+    connection.execute(sql, params, (error, results) => {
+      if (error) {
+        reject('Erro ao executar a consulta: ' + error.message);
+      } else {
+        resolve(results);
+      }
+    });
+  });
 };
 
-// Exportar a função testarConexao
-exports.testarConexao = testarConexao;
+module.exports = { testarConexao, query };
+

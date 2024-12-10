@@ -14,6 +14,7 @@
   .container {
     max-width: 600px;
     margin: 0 auto;
+    margin-top: 5%;
     display: flex;
     gap: 50px;
     flex-direction: column;
@@ -66,7 +67,7 @@
   }
   
   .show-form-btn {
-    background-color: #28a745;
+    background-color: #004691;
     color: white;
     border: none;
     padding: 12px 20px;
@@ -77,7 +78,7 @@
   }
   
   .show-form-btn:hover {
-    background-color: #218838;
+    background-color: #0056b3;
   }
   
   /* Produto */
@@ -119,3 +120,107 @@
     color: #d9534f;
   }
   
+  /* Modal de confrimação de exclusão */
+.modal {
+  display: none; 
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); 
+  justify-content: center;
+  align-items: center;
+  z-index: 9999; 
+}
+
+.modal-content {
+  background-color: #fff;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+  width: 300px; 
+  text-align: center;
+}
+
+.modal-content p {
+  font-size: 1rem;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.modal button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  font-size: 1rem;
+  border-radius: 5px;
+  cursor: pointer;
+  margin: 0 2px;
+}
+
+.modal button:hover {
+  background-color: #0056b3;
+}
+
+.modal .cancel-btn {
+  background-color: #d9534f;
+}
+
+.modal .cancel-btn:hover {
+  background-color: #c9302c;
+}
+
+.footer {
+  width: 100%;
+  height: 60px;
+  background-color: #ffffff;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #666666;
+  font-size: 1rem;
+}
+
+  
+/* Estilos gerais da navbar */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #ffffff;
+  padding: 20px 20px;
+  position: fixed;
+  width: 100%;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+}
+
+.navbar-logo a {
+  color: #002e5f;
+  font-size: 1.5rem;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+/* Navbar responsiva */
+@media (max-width: 768px) {
+  .navbar-links {
+    display: none;
+    width: 100%;
+    flex-direction: column;
+    gap: 10px;
+    background-color: #007bff;
+    padding: 10px 0;
+    position: absolute;
+    top: 60px;
+    left: 0;
+  }
+
+
+}
