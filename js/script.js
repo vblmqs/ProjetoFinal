@@ -1,6 +1,7 @@
 // Armazena os produtos
 let produtos = [];
-let produtoEditando = null; // Variável para armazenar o índice do produto sendo editado
+let produtoEditando = null; 
+const apiUrl = "http://localhost:3000/produtos"; 
 
 // Exibe o formulário de cadastro
 function showForm() {
@@ -25,7 +26,7 @@ function handleCategoryChange() {
 
 // Formata valores para moeda brasileira
 function formatarValor(valor) {
-    let partes = valor.split(",");
+    const partes = valor.split(",");
     if (partes.length === 1) return `${valor},00`;
     if (partes[1].length === 1) return `${partes[0]},${partes[1]}0`;
     return valor;
@@ -45,8 +46,11 @@ function clearForm() {
 
 // Remove mensagens de erro
 function clearErrorMessage() {
-    document.getElementById("error-message").style.display = "none";
-    document.getElementById("error-message").innerText = "";
+    setTimeout(() => {
+        const errorMessage = document.getElementById("error-message");
+        errorMessage.style.display = "none";
+        errorMessage.innerText = "";
+    }, 3000); // Esconde a mensagem após 3 segundos
 }
 
 // Exibe mensagens de erro
@@ -62,9 +66,9 @@ function isAlphabetic(input) {
 }
 
 // Valida e salva o produto
-function handleFormSubmit(event) {
+async function handleFormSubmit(event) {
     event.preventDefault();
-    
+
     const descricao = document.getElementById("product-description").value.trim();
     const valor = document.getElementById("product-value").value.trim();
     const categoria = document.getElementById("product-category").value;
@@ -79,13 +83,10 @@ function handleFormSubmit(event) {
         displayErrorMessage("Descrição deve ter no máximo 40 caracteres.");
         return;
     }
-    
-    // Verifica se existe outro produto com a mesma descrição, mas ignora o produto em edição
     if (produtos.some(p => p.descricao === descricao && produtoEditando !== produtos.indexOf(p))) {
         displayErrorMessage("Já existe um produto com essa descrição.");
         return;
     }
-
     if (!valor.match(/^\d+(\,\d{1,2})?$/)) {
         displayErrorMessage("Valor inválido! Use o formato correto (ex: 100,00).");
         return;
@@ -105,26 +106,54 @@ function handleFormSubmit(event) {
         }
     }
 
-    // Confirmação antes de salvar
-    if (confirm("Deseja salvar o produto?")) {
-        const produto = {
-            descricao: produtos[produtoEditando]?.descricao || descricao, // Não permite mudar a descrição
-            valor: formatarValor(valor),
-            categoria: categoria === "outros" ? outraCategoria : categoria
-        };
+    // Cria o objeto produto
+    const produto = {
+        descricao: descricao,
+        valor: formatarValor(valor),
+        categoria: categoria === "outros" ? outraCategoria : categoria
+    };
 
-        if (produtoEditando !== null) {
-            // Atualiza o produto existente (não permite alterar a descrição)
-            produtos[produtoEditando] = produto;
-            produtoEditando = null; // Limpa a referência de edição
-        } else {
-            // Adiciona novo produto
-            produtos.push(produto);
+    try {
+        // Confirmação antes de salvar
+        if (confirm("Deseja salvar o produto?")) {
+            let response;
+            if (produtoEditando !== null) {
+                response = await fetch(`${apiUrl}/${produtos[produtoEditando].id}`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(produto)
+                });
+            } else {
+                response = await fetch(apiUrl, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(produto)
+                });
+            }
+
+            // Log da resposta da API para diagnóstico
+            console.log("Resposta da API:", response);
+
+            if (response.ok) {
+                const data = await response.json();
+                if (produtoEditando !== null) {
+                    produtos[produtoEditando] = data;
+                } else {
+                    produtos.push(data);
+                }
+
+                document.getElementById("product-form").reset();
+                document.getElementById("product-description").disabled = false;
+                produtoEditando = null;
+                showProductList();
+            } else {
+                const error = await response.json();
+                displayErrorMessage(error.message || "Erro ao salvar o produto.");
+            }
         }
-
-        document.getElementById("product-form").reset();
-        document.getElementById("product-description").disabled = false; // Reabilita o campo de descrição
-        showProductList();
+    } catch (error) {
+        displayErrorMessage("Erro ao se conectar com a API.");
+        console.error(error);
     }
 }
 
@@ -133,27 +162,31 @@ function renderProductList() {
     const lista = document.getElementById("product-list");
     lista.innerHTML = "";
     produtos.forEach((produto, index) => {
-        const produtoDiv = document.createElement("div");
-        produtoDiv.classList.add("product-card");
-        produtoDiv.innerHTML = `
-            <h3>${produto.descricao}</h3>
-            <p>Valor: R$ ${produto.valor}</p>
-            <p>Categoria: ${produto.categoria}</p>
-            <div class="actions">
-                <button class="edit-btn" onclick="editProduct(${index})">✏️</button>
-                <button class="delete-btn" onclick="deleteProduct(${index})">🗑️</button>
-            </div>
-        `;
-        lista.appendChild(produtoDiv);
+        lista.appendChild(createProductCard(produto, index));
     });
+}
+
+function createProductCard(produto, index) {
+    const produtoDiv = document.createElement("div");
+    produtoDiv.classList.add("product-card");
+    produtoDiv.innerHTML = `
+        <h3>${produto.descricao}</h3>
+        <p>Valor: R$ ${produto.valor}</p>
+        <p>Categoria: ${produto.categoria}</p>
+        <div class="actions">
+            <button class="edit-btn" onclick="editProduct(${index})">✏️</button>
+            <button class="delete-btn" onclick="deleteProduct(${index})">🗑️</button>
+        </div>
+    `;
+    return produtoDiv;
 }
 
 // Edita um produto
 function editProduct(index) {
-    produtoEditando = index;  // Atribui o índice do produto a ser editado
+    produtoEditando = index;
     const produto = produtos[index];
-    document.getElementById("product-description").value = produto.descricao; // Descrição não pode ser alterada
-    document.getElementById("product-description").disabled = true; // Desabilita o campo de descrição
+    document.getElementById("product-description").value = produto.descricao;
+    document.getElementById("product-description").disabled = true;
     document.getElementById("product-value").value = produto.valor;
     document.getElementById("product-category").value = produto.categoria;
     if (produto.categoria === "outros") {
@@ -164,9 +197,25 @@ function editProduct(index) {
 }
 
 // Deleta um produto
-function deleteProduct(index) {
+async function deleteProduct(index) {
     if (confirm("Tem certeza que deseja deletar este produto?")) {
-        produtos.splice(index, 1);
-        renderProductList();
+        try {
+            const produto = produtos[index];
+            const response = await fetch(`${apiUrl}/${produto.id}`, {
+                method: "DELETE"
+            });
+            if (response.ok) {
+                produtos.splice(index, 1);
+                renderProductList();
+            } else {
+                const error = await response.json();
+                displayErrorMessage(error.message || "Erro ao deletar o produto.");
+            }
+        } catch (error) {
+            displayErrorMessage("Erro ao se conectar com a API.");
+            console.error(error);
+        }
     }
 }
+
+
